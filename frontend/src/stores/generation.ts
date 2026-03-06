@@ -87,7 +87,7 @@ export const useGenerationStore = defineStore("generation", () => {
 
         if (event.status === "done") {
           jobs.value[idx].status = "done";
-          jobs.value[idx].result = event.data as Asset & { file_url?: string };
+          jobs.value[idx].result = event.data as unknown as Asset & { file_url?: string };
         } else if (event.status === "error") {
           jobs.value[idx].status = "error";
           jobs.value[idx].errorDetail = (event.data?.detail as string) || event.message;
