@@ -158,7 +158,76 @@ make down       # Stop all containers
 make logs       # Tail logs from all services
 make pb-migrate # Run PocketBase migrations manually
 make clean      # Stop containers and remove all volumes and images
+make lint       # Run linters (ESLint + ruff)
+make lint-fix   # Fix linting issues and auto-format code
+make test       # Run all tests (frontend + backend)
+make test-frontend # Run frontend tests only
+make test-backend  # Run backend tests only
 ```
+
+## Development
+
+### Linting
+
+Code quality is maintained with ESLint (frontend) and ruff (backend). Run checks locally before committing:
+
+```bash
+make lint        # Check both frontend and backend
+make lint-fix    # Auto-fix and format issues
+```
+
+For frontend-only: `cd frontend && pnpm lint`
+For backend-only: `cd backend && ruff check app`
+
+### Formatting
+
+Code is automatically formatted as part of `make lint-fix`:
+
+- **Frontend**: Prettier (via `pnpm lint:fix`)
+- **Backend**: ruff format (via `make lint-fix`)
+
+### Type Checking
+
+The frontend uses TypeScript. Type check without building:
+
+```bash
+cd frontend && pnpm typecheck
+```
+
+This runs during the build step as well.
+
+### Testing
+
+Run tests locally:
+
+```bash
+make test              # Run all tests
+make test-frontend     # Frontend tests only (vitest)
+make test-backend      # Backend tests only (pytest)
+```
+
+**Frontend**: Unit tests for utilities and stores using [vitest](https://vitest.dev/)
+**Backend**: Integration tests using [pytest](https://pytest.org/) with FastAPI's `TestClient`
+
+### Pre-commit Hooks
+
+Optionally install local pre-commit hooks to auto-lint before each commit:
+
+```bash
+pip install pre-commit
+pre-commit install
+```
+
+This will run ruff (lint + format) and ESLint on staged files.
+
+### CI/CD
+
+Every push to `master` and every pull request triggers a GitHub Actions workflow (`.github/workflows/ci.yml`) that:
+
+1. Lints frontend and backend code
+2. Type-checks frontend TypeScript
+3. Runs all tests
+4. Checks for dependency vulnerabilities
 
 ## PocketBase Admin
 

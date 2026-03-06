@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import path from 'path'
 import tailwindcss from '@tailwindcss/vite'
 import vue from '@vitejs/plugin-vue'
@@ -19,5 +20,9 @@ export default defineConfig({
         changeOrigin: true,
       },
     },
+  },
+  test: {
+    environment: 'jsdom',
+    globals: true,
   },
 })

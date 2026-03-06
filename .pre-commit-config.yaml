@@ -1,0 +1,15 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.3.0
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+  - repo: local
+    hooks:
+      - id: eslint
+        name: ESLint
+        language: node
+        files: \.(vue|ts|tsx|js|jsx)$
+        entry: bash -c 'cd frontend && npx pnpm lint:fix'
+        pass_filenames: false

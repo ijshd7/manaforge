@@ -1,4 +1,4 @@
-.PHONY: dev build up down logs pb-migrate clean lint lint-fix
+.PHONY: dev build up down logs pb-migrate clean lint lint-fix test test-frontend test-backend
 
 dev:
 	docker compose -f docker-compose.yml -f docker-compose.dev.yml up
@@ -26,3 +26,13 @@ lint:
 
 lint-fix:
 	bash -c 'source $$HOME/.nvm/nvm.sh && nvm use 22 && cd frontend && npx pnpm lint:fix && cd ../backend && ruff check --fix app && ruff format app'
+
+test:
+	$(MAKE) test-frontend
+	$(MAKE) test-backend
+
+test-frontend:
+	bash -c 'source $$HOME/.nvm/nvm.sh && nvm use 22 && cd frontend && npx pnpm test:run'
+
+test-backend:
+	cd backend && unset VIRTUAL_ENV && uv run pytest
