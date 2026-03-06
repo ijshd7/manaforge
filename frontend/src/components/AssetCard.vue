@@ -1,46 +1,46 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import type { Asset } from '@/lib/types'
-import { pb } from '@/lib/pb'
-import { Card, CardContent, CardFooter } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { computed } from "vue";
+import type { Asset } from "@/lib/types";
+import { pb } from "@/lib/pb";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
-const props = defineProps<{ asset: Asset }>()
-const emit = defineEmits<{ delete: [id: string] }>()
+const props = defineProps<{ asset: Asset }>();
+const emit = defineEmits<{ delete: [id: string] }>();
 
 const typeIcons: Record<string, string> = {
-  image: '🖼️',
-  spritesheet: '🎞️',
-  sound: '🔊',
-  lore: '📜',
-}
+  image: "🖼️",
+  spritesheet: "🎞️",
+  sound: "🔊",
+  lore: "📜",
+};
 
 const fileUrl = computed(() => {
-  if (!props.asset.file) return null
-  return pb.files.getUrl(props.asset, props.asset.file)
-})
+  if (!props.asset.file) return null;
+  return pb.files.getUrl(props.asset, props.asset.file);
+});
 
 const formattedDate = computed(() => {
   return new Date(props.asset.created).toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  })
-})
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+});
 
 function downloadAsset() {
   if (fileUrl.value) {
-    const a = document.createElement('a')
-    a.href = fileUrl.value
-    a.download = props.asset.name
-    a.click()
+    const a = document.createElement("a");
+    a.href = fileUrl.value;
+    a.download = props.asset.name;
+    a.click();
   } else if (props.asset.content) {
-    const blob = new Blob([props.asset.content], { type: 'text/plain' })
-    const a = document.createElement('a')
-    a.href = URL.createObjectURL(blob)
-    a.download = `${props.asset.name}.txt`
-    a.click()
+    const blob = new Blob([props.asset.content], { type: "text/plain" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `${props.asset.name}.txt`;
+    a.click();
   }
 }
 </script>
@@ -90,9 +90,7 @@ function downloadAsset() {
     </CardContent>
 
     <CardFooter class="gap-2 pt-0">
-      <Button size="sm" variant="outline" class="flex-1" @click="downloadAsset">
-        Download
-      </Button>
+      <Button size="sm" variant="outline" class="flex-1" @click="downloadAsset"> Download </Button>
       <Button
         size="sm"
         variant="ghost"

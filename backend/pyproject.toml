@@ -13,3 +13,6 @@ dependencies = [
     "sse-starlette>=2.1",
 ]
 
+[project.optional-dependencies]
+dev = ["ruff>=0.3.0"]
+

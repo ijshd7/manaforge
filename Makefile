@@ -1,4 +1,4 @@
-.PHONY: dev build up down logs pb-migrate clean
+.PHONY: dev build up down logs pb-migrate clean lint lint-fix
 
 dev:
 	docker compose -f docker-compose.yml -f docker-compose.dev.yml up
@@ -20,3 +20,9 @@ pb-migrate:
 
 clean:
 	docker compose down -v --rmi all
+
+lint:
+	bash -c 'source $$HOME/.nvm/nvm.sh && nvm use 22 && cd frontend && npx pnpm lint && cd ../backend && ruff check app'
+
+lint-fix:
+	bash -c 'source $$HOME/.nvm/nvm.sh && nvm use 22 && cd frontend && npx pnpm lint:fix && cd ../backend && ruff check --fix app && ruff format app'

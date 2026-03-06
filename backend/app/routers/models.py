@@ -10,4 +10,6 @@ async def get_models():
     try:
         return await list_models()
     except Exception as e:
-        raise HTTPException(status_code=502, detail=f"Failed to fetch models from OpenRouter: {e}")
+        raise HTTPException(
+            status_code=502, detail=f"Failed to fetch models from OpenRouter: {e}"
+        ) from e

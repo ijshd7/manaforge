@@ -23,10 +23,7 @@ async def list_models() -> list[dict]:
         )
         resp.raise_for_status()
         data = resp.json()
-        models = [
-            {"id": m["id"], "name": m.get("name", m["id"])}
-            for m in data.get("data", [])
-        ]
+        models = [{"id": m["id"], "name": m.get("name", m["id"])} for m in data.get("data", [])]
         # Sort by name for easier browsing
         return sorted(models, key=lambda m: m["name"].lower())
 

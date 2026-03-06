@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { useToast } from './use-toast'
+import { useToast } from "./use-toast";
 
-const { toasts, dismiss } = useToast()
+const { toasts, dismiss } = useToast();
 </script>
 
 <template>

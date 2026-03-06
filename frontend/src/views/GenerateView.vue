@@ -1,54 +1,54 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
-import { fetchModels } from '@/lib/api'
-import type { AssetType, GenerateRequest, OpenRouterModel } from '@/lib/types'
-import { useGenerationStore } from '@/stores/generation'
-import GenerationCard from '@/components/GenerationCard.vue'
-import { Button } from '@/components/ui/button'
-import { useToast } from '@/components/ui/toast/use-toast'
+import { computed, onMounted, ref } from "vue";
+import { fetchModels } from "@/lib/api";
+import type { AssetType, GenerateRequest, OpenRouterModel } from "@/lib/types";
+import { useGenerationStore } from "@/stores/generation";
+import GenerationCard from "@/components/GenerationCard.vue";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/toast/use-toast";
 
-const store = useGenerationStore()
-const { toast } = useToast()
+const store = useGenerationStore();
+const { toast } = useToast();
 
 // Form state
-const prompt = ref('')
-const name = ref('')
-const style = ref<'pixel' | 'handdrawn'>('pixel')
-const frameCount = ref(4)
-const soundDuration = ref(3)
-const selectedLoreModel = ref('openai/gpt-4o-mini')
-const selectedTypes = ref<Set<AssetType>>(new Set(['image']))
-const models = ref<OpenRouterModel[]>([])
-const modelsLoading = ref(false)
+const prompt = ref("");
+const name = ref("");
+const style = ref<"pixel" | "handdrawn">("pixel");
+const frameCount = ref(4);
+const soundDuration = ref(3);
+const selectedLoreModel = ref("openai/gpt-4o-mini");
+const selectedTypes = ref<Set<AssetType>>(new Set(["image"]));
+const models = ref<OpenRouterModel[]>([]);
+const modelsLoading = ref(false);
 
-const ALL_TYPES: AssetType[] = ['image', 'spritesheet', 'sound', 'lore']
-const isAllSelected = computed(() => ALL_TYPES.every((t) => selectedTypes.value.has(t)))
+const ALL_TYPES: AssetType[] = ["image", "spritesheet", "sound", "lore"];
+const isAllSelected = computed(() => ALL_TYPES.every((t) => selectedTypes.value.has(t)));
 
 onMounted(async () => {
-  modelsLoading.value = true
+  modelsLoading.value = true;
   try {
-    models.value = await fetchModels()
+    models.value = await fetchModels();
     if (models.value.length > 0 && !models.value.find((m) => m.id === selectedLoreModel.value)) {
-      selectedLoreModel.value = models.value[0].id
+      selectedLoreModel.value = models.value[0].id;
     }
   } catch {
     // Non-fatal — user can still type a model ID
   } finally {
-    modelsLoading.value = false
+    modelsLoading.value = false;
   }
-})
+});
 
 function toggleType(type: AssetType) {
-  const s = new Set(selectedTypes.value)
-  s.has(type) ? s.delete(type) : s.add(type)
-  selectedTypes.value = s
+  const s = new Set(selectedTypes.value);
+  s.has(type) ? s.delete(type) : s.add(type);
+  selectedTypes.value = s;
 }
 
 function toggleAll() {
   if (isAllSelected.value) {
-    selectedTypes.value = new Set()
+    selectedTypes.value = new Set();
   } else {
-    selectedTypes.value = new Set(ALL_TYPES)
+    selectedTypes.value = new Set(ALL_TYPES);
   }
 }
 
@@ -59,33 +59,37 @@ const payload = computed<GenerateRequest>(() => ({
   frame_count: frameCount.value,
   lore_model: selectedLoreModel.value,
   sound_duration: soundDuration.value,
-}))
+}));
 
 async function handleGenerate() {
   if (!prompt.value.trim()) {
-    toast({ title: 'Prompt required', description: 'Please enter a prompt before generating.', variant: 'destructive' })
-    return
+    toast({
+      title: "Prompt required",
+      description: "Please enter a prompt before generating.",
+      variant: "destructive",
+    });
+    return;
   }
   if (selectedTypes.value.size === 0) {
-    toast({ title: 'Select at least one asset type', variant: 'destructive' })
-    return
+    toast({ title: "Select at least one asset type", variant: "destructive" });
+    return;
   }
 
   try {
     if (isAllSelected.value || selectedTypes.value.size === 4) {
-      await store.startAll(payload.value)
+      await store.startAll(payload.value);
     } else if (selectedTypes.value.size === 1) {
-      const type = [...selectedTypes.value][0]
-      await store.startSingle(type, payload.value)
+      const type = [...selectedTypes.value][0];
+      await store.startSingle(type, payload.value);
     } else {
-      await store.startMultiple([...selectedTypes.value], payload.value)
+      await store.startMultiple([...selectedTypes.value], payload.value);
     }
   } catch (err) {
     toast({
-      title: 'Failed to start generation',
-      description: err instanceof Error ? err.message : 'Unknown error',
-      variant: 'destructive',
-    })
+      title: "Failed to start generation",
+      description: err instanceof Error ? err.message : "Unknown error",
+      variant: "destructive",
+    });
   }
 }
 </script>
@@ -128,7 +132,10 @@ async function handleGenerate() {
           <label class="text-sm font-medium">Art Style</label>
           <div class="flex gap-2">
             <button
-              v-for="s in [{ id: 'pixel', label: 'Pixel Art' }, { id: 'handdrawn', label: 'Hand-drawn' }]"
+              v-for="s in [
+                { id: 'pixel', label: 'Pixel Art' },
+                { id: 'handdrawn', label: 'Hand-drawn' },
+              ]"
               :key="s.id"
               type="button"
               class="flex-1 rounded-md border px-3 py-2 text-sm font-medium transition-colors"
@@ -155,7 +162,7 @@ async function handleGenerate() {
               class="text-xs text-muted-foreground hover:text-primary transition-colors"
               @click="toggleAll"
             >
-              {{ isAllSelected ? 'Deselect all' : 'Select all' }}
+              {{ isAllSelected ? "Deselect all" : "Select all" }}
             </button>
           </div>
           <div class="grid grid-cols-2 gap-2">
@@ -172,7 +179,7 @@ async function handleGenerate() {
               @click="toggleType(type)"
             >
               <span class="text-base">{{
-                { image: '🖼️', spritesheet: '🎞️', sound: '🔊', lore: '📜' }[type]
+                { image: "🖼️", spritesheet: "🎞️", sound: "🔊", lore: "📜" }[type]
               }}</span>
               <span class="capitalize">{{ type }}</span>
             </button>
@@ -244,7 +251,7 @@ async function handleGenerate() {
       <span v-else-if="isAllSelected">Generate All Assets</span>
       <span v-else>
         Generate
-        {{ [...selectedTypes].map((t) => t.charAt(0).toUpperCase() + t.slice(1)).join(' + ') }}
+        {{ [...selectedTypes].map((t) => t.charAt(0).toUpperCase() + t.slice(1)).join(" + ") }}
       </span>
     </Button>
 

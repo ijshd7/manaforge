@@ -1,40 +1,40 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, watch } from 'vue'
-import type { AssetType } from '@/lib/types'
-import { useAssetsStore } from '@/stores/assets'
-import AssetCard from '@/components/AssetCard.vue'
-import { Button } from '@/components/ui/button'
+import { onMounted, onUnmounted, ref, watch } from "vue";
+import type { AssetType } from "@/lib/types";
+import { useAssetsStore } from "@/stores/assets";
+import AssetCard from "@/components/AssetCard.vue";
+import { Button } from "@/components/ui/button";
 
-const store = useAssetsStore()
+const store = useAssetsStore();
 
 const FILTERS: { label: string; value: AssetType | undefined }[] = [
-  { label: 'All', value: undefined },
-  { label: '🖼️ Images', value: 'image' },
-  { label: '🎞️ Spritesheets', value: 'spritesheet' },
-  { label: '🔊 Sounds', value: 'sound' },
-  { label: '📜 Lore', value: 'lore' },
-]
+  { label: "All", value: undefined },
+  { label: "🖼️ Images", value: "image" },
+  { label: "🎞️ Spritesheets", value: "spritesheet" },
+  { label: "🔊 Sounds", value: "sound" },
+  { label: "📜 Lore", value: "lore" },
+];
 
-const activeFilter = ref<AssetType | undefined>(undefined)
+const activeFilter = ref<AssetType | undefined>(undefined);
 
 onMounted(() => {
-  store.load()
-  store.subscribeRealtime()
-})
+  store.load();
+  store.subscribeRealtime();
+});
 
 onUnmounted(() => {
-  store.unsubscribeRealtime()
-})
+  store.unsubscribeRealtime();
+});
 
-watch(activeFilter, (type) => store.load(type, 1))
+watch(activeFilter, (type) => store.load(type, 1));
 
 async function handleDelete(id: string) {
-  if (!confirm('Delete this asset? This cannot be undone.')) return
-  await store.remove(id)
+  if (!confirm("Delete this asset? This cannot be undone.")) return;
+  await store.remove(id);
 }
 
 function goToPage(page: number) {
-  store.load(activeFilter.value, page)
+  store.load(activeFilter.value, page);
 }
 </script>
 
@@ -43,7 +43,7 @@ function goToPage(page: number) {
     <div>
       <h1 class="text-2xl font-bold">Asset Archive</h1>
       <p class="text-muted-foreground text-sm mt-1">
-        {{ store.totalItems }} asset{{ store.totalItems !== 1 ? 's' : '' }} saved
+        {{ store.totalItems }} asset{{ store.totalItems !== 1 ? "s" : "" }} saved
       </p>
     </div>
 
@@ -67,11 +67,7 @@ function goToPage(page: number) {
 
     <!-- Loading -->
     <div v-if="store.loading" class="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-      <div
-        v-for="i in 8"
-        :key="i"
-        class="rounded-lg border bg-muted animate-pulse aspect-[4/5]"
-      />
+      <div v-for="i in 8" :key="i" class="rounded-lg border bg-muted animate-pulse aspect-[4/5]" />
     </div>
 
     <!-- Error -->
@@ -94,10 +90,7 @@ function goToPage(page: number) {
     </div>
 
     <!-- Asset grid -->
-    <div
-      v-else
-      class="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
-    >
+    <div v-else class="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
       <AssetCard
         v-for="asset in store.items"
         :key="asset.id"
@@ -107,10 +100,7 @@ function goToPage(page: number) {
     </div>
 
     <!-- Pagination -->
-    <div
-      v-if="store.totalPages > 1"
-      class="flex items-center justify-center gap-2 pt-4"
-    >
+    <div v-if="store.totalPages > 1" class="flex items-center justify-center gap-2 pt-4">
       <Button
         variant="outline"
         size="sm"

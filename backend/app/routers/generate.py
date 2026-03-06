@@ -43,7 +43,10 @@ async def generate_all(req: GenerateAllRequest, background_tasks: BackgroundTask
 
     background_tasks.add_task(
         _run_all_parallel,
-        job_image, job_spritesheet, job_sound, job_lore,
+        job_image,
+        job_spritesheet,
+        job_sound,
+        job_lore,
         req,
     )
 
@@ -94,7 +97,9 @@ async def _run_all_parallel(
 
 async def _run_image(job: Job, req) -> None:
     try:
-        await job.queue.put(JobEvent(progress=10, message="Starting image generation...", status="running"))
+        await job.queue.put(
+            JobEvent(progress=10, message="Starting image generation...", status="running")
+        )
 
         image_bytes, revised_prompt = await generate_image(req.prompt, req.style or "pixel")
 
@@ -133,7 +138,9 @@ async def _run_image(job: Job, req) -> None:
 
 async def _run_spritesheet(job: Job, req) -> None:
     try:
-        await job.queue.put(JobEvent(progress=5, message="Starting spritesheet generation...", status="running"))
+        await job.queue.put(
+            JobEvent(progress=5, message="Starting spritesheet generation...", status="running")
+        )
 
         sheet_bytes, metadata = await generate_spritesheet(
             job=job,
@@ -177,7 +184,9 @@ async def _run_spritesheet(job: Job, req) -> None:
 
 async def _run_sound(job: Job, req) -> None:
     try:
-        await job.queue.put(JobEvent(progress=10, message="Generating sound effect...", status="running"))
+        await job.queue.put(
+            JobEvent(progress=10, message="Generating sound effect...", status="running")
+        )
 
         sound_bytes = await generate_sound(req.prompt, req.sound_duration)
 

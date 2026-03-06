@@ -13,7 +13,9 @@ async def list_assets(
 ):
     valid_types = {"image", "spritesheet", "sound", "lore"}
     if type and type not in valid_types:
-        raise HTTPException(status_code=400, detail=f"Invalid type. Must be one of: {', '.join(valid_types)}")
+        raise HTTPException(
+            status_code=400, detail=f"Invalid type. Must be one of: {', '.join(valid_types)}"
+        )
 
     return await pb_client.list_assets(page=page, per_page=per_page, filter_type=type)
 
@@ -23,7 +25,7 @@ async def get_asset(record_id: str):
     try:
         return await pb_client.get_asset(record_id)
     except Exception as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e)) from e
 
 
 @router.delete("/assets/{record_id}")
@@ -32,4 +34,4 @@ async def delete_asset(record_id: str):
         await pb_client.delete_asset(record_id)
         return {"deleted": True}
     except Exception as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e)) from e

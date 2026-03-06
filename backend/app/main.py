@@ -7,7 +7,12 @@ app = FastAPI(title="Manaforge API", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:80", "http://frontend"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "http://localhost:80",
+        "http://frontend",
+    ],
     allow_methods=["*"],
     allow_headers=["*"],
 )

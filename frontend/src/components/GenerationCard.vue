@@ -1,58 +1,58 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import type { JobResult, GenerateRequest } from '@/lib/types'
-import { pb } from '@/lib/pb'
-import { Progress } from '@/components/ui/progress'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { computed } from "vue";
+import type { JobResult, GenerateRequest } from "@/lib/types";
+import { pb } from "@/lib/pb";
+import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const props = defineProps<{
-  job: JobResult
-  retryPayload: GenerateRequest
-}>()
+  job: JobResult;
+  retryPayload: GenerateRequest;
+}>();
 
 const emit = defineEmits<{
-  retry: [job: JobResult, payload: GenerateRequest]
-}>()
+  retry: [job: JobResult, payload: GenerateRequest];
+}>();
 
 const typeLabels: Record<string, string> = {
-  image: 'Image',
-  spritesheet: 'Spritesheet',
-  sound: 'Sound',
-  lore: 'Lore',
-}
+  image: "Image",
+  spritesheet: "Spritesheet",
+  sound: "Sound",
+  lore: "Lore",
+};
 
 const typeIcons: Record<string, string> = {
-  image: '🖼️',
-  spritesheet: '🎞️',
-  sound: '🔊',
-  lore: '📜',
-}
+  image: "🖼️",
+  spritesheet: "🎞️",
+  sound: "🔊",
+  lore: "📜",
+};
 
 const fileUrl = computed(() => {
-  const r = props.job.result
-  if (!r || !r.file) return null
+  const r = props.job.result;
+  if (!r || !r.file) return null;
   // Use the PocketBase SDK to build the correct file URL
-  return pb.files.getUrl(r, r.file as string)
-})
+  return pb.files.getUrl(r, r.file as string);
+});
 
-const isImage = computed(() => props.job.type === 'image' || props.job.type === 'spritesheet')
-const isSound = computed(() => props.job.type === 'sound')
-const isLore = computed(() => props.job.type === 'lore')
+const isImage = computed(() => props.job.type === "image" || props.job.type === "spritesheet");
+const isSound = computed(() => props.job.type === "sound");
+const isLore = computed(() => props.job.type === "lore");
 
 function downloadFile() {
   if (fileUrl.value) {
-    const a = document.createElement('a')
-    a.href = fileUrl.value
-    a.download = `${props.job.result?.name || props.job.type}`
-    a.click()
+    const a = document.createElement("a");
+    a.href = fileUrl.value;
+    a.download = `${props.job.result?.name || props.job.type}`;
+    a.click();
   } else if (isLore.value && props.job.result?.content) {
-    const blob = new Blob([props.job.result.content as string], { type: 'text/plain' })
-    const a = document.createElement('a')
-    a.href = URL.createObjectURL(blob)
-    a.download = `${props.job.result?.name || 'lore'}.txt`
-    a.click()
+    const blob = new Blob([props.job.result.content as string], { type: "text/plain" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `${props.job.result?.name || "lore"}.txt`;
+    a.click();
   }
 }
 </script>
@@ -73,11 +73,7 @@ function downloadFile() {
         </CardTitle>
         <Badge
           :variant="
-            job.status === 'error'
-              ? 'destructive'
-              : job.status === 'done'
-                ? 'default'
-                : 'secondary'
+            job.status === 'error' ? 'destructive' : job.status === 'done' ? 'default' : 'secondary'
           "
         >
           {{ job.status }}

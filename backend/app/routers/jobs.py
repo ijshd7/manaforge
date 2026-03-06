@@ -23,7 +23,7 @@ async def stream_job(job_id: str, request: Request):
 
                 try:
                     event = await asyncio.wait_for(job.queue.get(), timeout=30.0)
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     # Send a ping to keep the connection alive
                     yield {"event": "ping", "data": ""}
                     continue

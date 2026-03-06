@@ -59,6 +59,7 @@ class PocketBaseClient:
             fields["content"] = content
         if metadata:
             import json
+
             fields["metadata"] = json.dumps(metadata)
 
         if file_bytes and filename:
