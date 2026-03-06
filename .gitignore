@@ -1,0 +1,25 @@
+# Environment
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+dist/
+.pytest_cache/
+
+# Node
+node_modules/
+frontend/dist/
+frontend/.vite/
+
+# PocketBase data
+pocketbase/pb_data/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+*.log
