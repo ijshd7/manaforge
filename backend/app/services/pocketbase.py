@@ -88,7 +88,7 @@ class PocketBaseClient:
         params: dict = {
             "page": page,
             "perPage": per_page,
-            "sort": "-created",
+            "sort": "-name",
         }
         if filter_type:
             params["filter"] = f'type="{filter_type}"'

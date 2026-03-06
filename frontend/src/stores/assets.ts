@@ -20,8 +20,8 @@ export const useAssetsStore = defineStore('assets', () => {
 
     try {
       const res = await pb.collection(ASSETS_COLLECTION).getList<Asset>(page, 24, {
-        sort: '-created',
-        filter: type ? `type="${type}"` : '',
+        sort: '-name',
+        filter: type ? `type="${type}"` : undefined,
       })
       items.value = res.items
       totalItems.value = res.totalItems
