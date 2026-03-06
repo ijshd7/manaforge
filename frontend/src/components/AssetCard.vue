@@ -29,18 +29,26 @@ const formattedDate = computed(() => {
   });
 });
 
-function downloadAsset() {
+async function downloadAsset() {
   if (fileUrl.value) {
-    const a = document.createElement("a");
-    a.href = fileUrl.value;
-    a.download = props.asset.name;
-    a.click();
+    try {
+      const response = await fetch(fileUrl.value);
+      const blob = await response.blob();
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = props.asset.name;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } catch (err) {
+      console.error("Failed to download asset:", err);
+    }
   } else if (props.asset.content) {
     const blob = new Blob([props.asset.content], { type: "text/plain" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = `${props.asset.name}.txt`;
     a.click();
+    URL.revokeObjectURL(a.href);
   }
 }
 </script>

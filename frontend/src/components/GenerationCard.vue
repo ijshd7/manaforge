@@ -41,18 +41,26 @@ const isImage = computed(() => props.job.type === "image" || props.job.type === 
 const isSound = computed(() => props.job.type === "sound");
 const isLore = computed(() => props.job.type === "lore");
 
-function downloadFile() {
+async function downloadFile() {
   if (fileUrl.value) {
-    const a = document.createElement("a");
-    a.href = fileUrl.value;
-    a.download = `${props.job.result?.name || props.job.type}`;
-    a.click();
+    try {
+      const response = await fetch(fileUrl.value);
+      const blob = await response.blob();
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `${props.job.result?.name || props.job.type}`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } catch (err) {
+      console.error("Failed to download file:", err);
+    }
   } else if (isLore.value && props.job.result?.content) {
     const blob = new Blob([props.job.result.content as string], { type: "text/plain" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = `${props.job.result?.name || "lore"}.txt`;
     a.click();
+    URL.revokeObjectURL(a.href);
   }
 }
 </script>
