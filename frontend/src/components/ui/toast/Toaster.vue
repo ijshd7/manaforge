@@ -10,11 +10,11 @@ const { toasts, dismiss } = useToast();
       <div
         v-for="toast in toasts"
         :key="toast.id"
-        class="rounded-lg border p-4 shadow-lg text-sm"
+        class="border-2 p-4 text-sm pixel-box"
         :class="
           toast.variant === 'destructive'
             ? 'bg-destructive text-destructive-foreground border-destructive'
-            : 'bg-card text-card-foreground border-border'
+            : 'bg-card text-card-foreground border-primary'
         "
       >
         <div class="flex items-start justify-between gap-2">

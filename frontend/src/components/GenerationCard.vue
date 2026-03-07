@@ -69,13 +69,13 @@ async function downloadFile() {
   <Card
     :class="[
       'transition-all',
-      job.status === 'error' && 'border-destructive',
-      job.status === 'done' && 'border-green-500/50',
+      job.status === 'error' && 'border-destructive!',
+      job.status === 'done' && 'border-emerald-500!',
     ]"
   >
     <CardHeader class="pb-3">
       <div class="flex items-center justify-between">
-        <CardTitle class="text-base flex items-center gap-2">
+        <CardTitle class="flex items-center gap-2">
           <span>{{ typeIcons[job.type] }}</span>
           <span>{{ typeLabels[job.type] }}</span>
         </CardTitle>
@@ -117,7 +117,7 @@ async function downloadFile() {
           v-if="isImage && fileUrl"
           :src="fileUrl"
           :alt="job.result?.name as string"
-          class="w-full rounded-md object-contain max-h-64 border"
+          class="w-full object-contain max-h-64 border-2 border-secondary"
         />
 
         <!-- Sound player -->
@@ -130,7 +130,7 @@ async function downloadFile() {
         <!-- Lore text -->
         <div
           v-if="isLore && job.result?.content"
-          class="max-h-48 overflow-y-auto rounded-md bg-muted p-3 text-sm leading-relaxed"
+          class="max-h-48 overflow-y-auto bg-muted p-3 text-sm leading-relaxed border-2 border-secondary"
         >
           {{ job.result.content }}
         </div>

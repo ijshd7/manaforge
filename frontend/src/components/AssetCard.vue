@@ -54,9 +54,9 @@ async function downloadAsset() {
 </script>
 
 <template>
-  <Card class="flex flex-col overflow-hidden">
+  <Card class="flex flex-col">
     <!-- Preview area -->
-    <div class="relative bg-muted aspect-video flex items-center justify-center overflow-hidden">
+    <div class="relative bg-secondary aspect-video flex items-center justify-center border-b-2 border-secondary">
       <!-- Image / Spritesheet -->
       <img
         v-if="(asset.type === 'image' || asset.type === 'spritesheet') && fileUrl"
@@ -84,7 +84,7 @@ async function downloadAsset() {
       <span v-else class="text-4xl">{{ typeIcons[asset.type] }}</span>
 
       <!-- Type badge overlay -->
-      <Badge class="absolute top-2 right-2 capitalize" variant="secondary">
+      <Badge class="absolute top-2 right-2 capitalize font-pixel" variant="default">
         {{ typeIcons[asset.type] }} {{ asset.type }}
       </Badge>
     </div>

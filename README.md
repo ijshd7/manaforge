@@ -1,6 +1,12 @@
-# Manaforge
+# ManaForge
 
 A self-hosted game asset generation dashboard. Generate images, spritesheets, sounds, and lore from a single prompt using AI APIs, with a persistent archive to browse and download everything you've created.
+
+## Demo
+
+![ManaForge generate screen](docs/generate.png)
+
+![ManaForge archive screen](docs/archive.png)
 
 ## Features
 

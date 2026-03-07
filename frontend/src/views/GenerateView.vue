@@ -97,8 +97,8 @@ async function handleGenerate() {
 <template>
   <div class="max-w-4xl mx-auto space-y-8">
     <div>
-      <h1 class="text-2xl font-bold">Generate Assets</h1>
-      <p class="text-muted-foreground text-sm mt-1">
+      <h1 class="font-pixel text-base text-primary">Generate Assets</h1>
+      <p class="text-muted-foreground text-sm mt-2">
         Create game assets using AI. Select types, write a prompt, and generate.
       </p>
     </div>
@@ -113,7 +113,7 @@ async function handleGenerate() {
             v-model="name"
             type="text"
             placeholder="e.g. Fire Dragon"
-            class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            class="w-full border-2 border-secondary bg-secondary px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
           />
         </div>
 
@@ -123,7 +123,7 @@ async function handleGenerate() {
             v-model="prompt"
             rows="5"
             placeholder="Describe your game asset in detail…"
-            class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+            class="w-full border-2 border-secondary bg-secondary px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent resize-none"
           />
         </div>
 
@@ -138,11 +138,11 @@ async function handleGenerate() {
               ]"
               :key="s.id"
               type="button"
-              class="flex-1 rounded-md border px-3 py-2 text-sm font-medium transition-colors"
+              class="flex-1 border-2 px-3 py-2 text-sm font-medium transition-all"
               :class="
                 style === s.id
                   ? 'border-primary bg-primary text-primary-foreground'
-                  : 'border-input bg-background hover:bg-accent'
+                  : 'border-secondary bg-secondary hover:border-primary'
               "
               @click="style = s.id as 'pixel' | 'handdrawn'"
             >
@@ -170,11 +170,11 @@ async function handleGenerate() {
               v-for="type in ALL_TYPES"
               :key="type"
               type="button"
-              class="flex items-center gap-2 rounded-md border px-3 py-2.5 text-sm font-medium transition-colors text-left"
+              class="flex items-center gap-2 border-2 px-3 py-2.5 text-sm font-medium transition-all text-left"
               :class="
                 selectedTypes.has(type)
-                  ? 'border-primary bg-primary/10 text-primary'
-                  : 'border-input bg-background hover:bg-accent'
+                  ? 'border-primary bg-primary text-primary-foreground'
+                  : 'border-secondary bg-secondary hover:border-primary'
               "
               @click="toggleType(type)"
             >
@@ -228,7 +228,7 @@ async function handleGenerate() {
           <label class="text-sm font-medium">Lore Model</label>
           <select
             v-model="selectedLoreModel"
-            class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            class="w-full border-2 border-secondary bg-secondary px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
           >
             <option v-if="modelsLoading" disabled>Loading models…</option>
             <option v-for="m in models" :key="m.id" :value="m.id">{{ m.name }}</option>
@@ -244,6 +244,7 @@ async function handleGenerate() {
     <Button
       class="w-full"
       size="lg"
+      variant="cta"
       :disabled="store.isGenerating || selectedTypes.size === 0"
       @click="handleGenerate"
     >
@@ -257,7 +258,7 @@ async function handleGenerate() {
 
     <!-- Progress cards -->
     <div v-if="store.jobs.length > 0" class="space-y-4">
-      <h2 class="text-lg font-semibold">Generation Progress</h2>
+      <h2 class="font-pixel text-sm text-primary">Generation Progress</h2>
       <div class="grid gap-4 sm:grid-cols-2">
         <GenerationCard
           v-for="job in store.jobs"

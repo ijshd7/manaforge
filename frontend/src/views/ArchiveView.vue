@@ -41,8 +41,8 @@ function goToPage(page: number) {
 <template>
   <div class="space-y-6">
     <div>
-      <h1 class="text-2xl font-bold">Asset Archive</h1>
-      <p class="text-muted-foreground text-sm mt-1">
+      <h1 class="font-pixel text-base text-primary">Asset Archive</h1>
+      <p class="text-muted-foreground text-sm mt-2">
         {{ store.totalItems }} asset{{ store.totalItems !== 1 ? "s" : "" }} saved
       </p>
     </div>
@@ -53,11 +53,11 @@ function goToPage(page: number) {
         v-for="f in FILTERS"
         :key="f.label"
         type="button"
-        class="rounded-full px-4 py-1.5 text-sm font-medium transition-colors border"
+        class="px-4 py-1.5 text-sm font-medium transition-all border-2"
         :class="
           activeFilter === f.value
             ? 'bg-primary text-primary-foreground border-primary'
-            : 'bg-background border-input hover:bg-accent'
+            : 'bg-secondary border-secondary hover:border-primary'
         "
         @click="activeFilter = f.value"
       >
@@ -67,11 +67,11 @@ function goToPage(page: number) {
 
     <!-- Loading -->
     <div v-if="store.loading" class="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-      <div v-for="i in 8" :key="i" class="rounded-lg border bg-muted animate-pulse aspect-[4/5]" />
+      <div v-for="i in 8" :key="i" class="border-2 border-secondary bg-secondary animate-pulse aspect-4/5" />
     </div>
 
     <!-- Error -->
-    <div v-else-if="store.error" class="rounded-lg border border-destructive p-6 text-center">
+    <div v-else-if="store.error" class="border-2 border-destructive p-6 text-center">
       <p class="text-destructive font-medium">Failed to load assets</p>
       <p class="text-sm text-muted-foreground mt-1">{{ store.error }}</p>
       <Button variant="outline" class="mt-3" @click="store.load(activeFilter)">Retry</Button>
@@ -80,11 +80,11 @@ function goToPage(page: number) {
     <!-- Empty state -->
     <div
       v-else-if="store.items.length === 0"
-      class="rounded-lg border border-dashed p-12 text-center"
+      class="border-2 border-dashed border-secondary p-12 text-center"
     >
       <p class="text-4xl mb-3">🗃️</p>
-      <p class="font-medium">No assets yet</p>
-      <p class="text-sm text-muted-foreground mt-1">
+      <p class="font-pixel text-sm text-primary">No assets yet</p>
+      <p class="text-xs text-muted-foreground mt-2">
         Generate some assets and they'll appear here.
       </p>
     </div>
