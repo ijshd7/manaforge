@@ -164,6 +164,7 @@ make down       # Stop all containers
 make logs       # Tail logs from all services
 make pb-migrate # Run PocketBase migrations manually
 make clean      # Stop containers and remove all volumes and images
+make bump       # Bump version (default: patch). Use make bump PART=minor or PART=0.2.0
 make lint       # Run linters (ESLint + ruff)
 make lint-fix   # Fix linting issues and auto-format code
 make test       # Run all tests (frontend + backend)

@@ -1,4 +1,4 @@
-.PHONY: dev build up down logs pb-migrate clean lint lint-fix test test-frontend test-backend
+.PHONY: dev build up down logs pb-migrate clean lint lint-fix test test-frontend test-backend fix-venv bump
 
 dev:
 	docker compose -f docker-compose.yml -f docker-compose.dev.yml up
@@ -35,4 +35,12 @@ test-frontend:
 	bash -c 'source $$HOME/.nvm/nvm.sh && nvm use 22 && cd frontend && npx pnpm test:run'
 
 test-backend:
-	cd backend && unset VIRTUAL_ENV && uv run pytest
+	cd backend && unset VIRTUAL_ENV && uv run --extra dev pytest
+
+# One-time fix when backend .venv was created by Docker (root-owned). Run if make test fails with "Permission denied".
+fix-venv:
+	sudo rm -rf backend/.venv
+
+# Bump version in VERSION, backend/pyproject.toml, frontend/package.json. Usage: make bump [PART=patch|minor|major|0.2.0]
+bump:
+	./scripts/bump-version.sh $(or $(PART),patch)
