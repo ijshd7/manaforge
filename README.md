@@ -1,5 +1,7 @@
 # ManaForge
 
+[![CI](https://github.com/ijshd7/manaforge/actions/workflows/ci.yml/badge.svg)](https://github.com/ijshd7/manaforge/actions/workflows/ci.yml)
+
 A self-hosted game asset generation dashboard. Generate images, spritesheets, sounds, and lore from a single prompt using AI APIs, with a persistent archive to browse and download everything you've created.
 
 ## Demo
