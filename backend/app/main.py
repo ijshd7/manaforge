@@ -1,6 +1,6 @@
+import tomllib
 from pathlib import Path
 
-import tomllib
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
