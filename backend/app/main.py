@@ -1,9 +1,18 @@
+from pathlib import Path
+
+import tomllib
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .routers import generate, jobs, models
 
-app = FastAPI(title="Manaforge API", version="0.1.0")
+_pyproject = Path(__file__).resolve().parent.parent / "pyproject.toml"
+_version = "0.1.0"
+if _pyproject.exists():
+    with open(_pyproject, "rb") as f:
+        _version = tomllib.load(f)["project"]["version"]
+
+app = FastAPI(title="Manaforge API", version=_version)
 
 app.add_middleware(
     CORSMiddleware,
