@@ -13,6 +13,8 @@ async def generate_spritesheet(
     prompt: str,
     style: str,
     frame_count: int,
+    target_width: int | None = None,
+    target_height: int | None = None,
 ) -> tuple[bytes, dict]:
     """
     Generate N animation frames individually via DALL-E 3,
@@ -50,24 +52,36 @@ async def generate_spritesheet(
     )
 
     loop = asyncio.get_event_loop()
-    sheet_bytes = await loop.run_in_executor(None, _stitch_frames, frames)
+    sheet_bytes = await loop.run_in_executor(
+        None, _stitch_frames, frames, target_width, target_height
+    )
 
     cols = math.ceil(math.sqrt(frame_count))
     rows = math.ceil(frame_count / cols)
+    frame_w = target_width or 1024
+    frame_h = target_height or 1024
 
     metadata = {
         "frame_count": frame_count,
         "grid_cols": cols,
         "grid_rows": rows,
-        "frame_size": "1024x1024",
+        "frame_size": f"{frame_w}x{frame_h}",
         "revised_prompts": revised_prompts,
     }
 
     return sheet_bytes, metadata
 
 
-def _stitch_frames(frames: list[bytes]) -> bytes:
+def _stitch_frames(
+    frames: list[bytes],
+    target_width: int | None = None,
+    target_height: int | None = None,
+) -> bytes:
     images = [Image.open(io.BytesIO(b)).convert("RGBA") for b in frames]
+    if target_width or target_height:
+        w = target_width or images[0].size[0]
+        h = target_height or images[0].size[1]
+        images = [img.resize((w, h), Image.NEAREST) for img in images]
     frame_count = len(images)
     cols = math.ceil(math.sqrt(frame_count))
     rows = math.ceil(frame_count / cols)

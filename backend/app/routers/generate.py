@@ -5,7 +5,7 @@ from fastapi import APIRouter, BackgroundTasks
 from pydantic import BaseModel, Field
 
 from ..jobs.store import Job, JobEvent, create_job
-from ..services.dalle import generate_image
+from ..services.dalle import generate_image, resize_image_bytes
 from ..services.elevenlabs import generate_sound
 from ..services.openrouter import generate_lore
 from ..services.pocketbase import pb_client
@@ -23,6 +23,8 @@ class GenerateRequest(BaseModel):
     frame_count: int = Field(default=4, ge=2, le=12)
     lore_model: str | None = "openai/gpt-4o-mini"
     sound_duration: float = Field(default=3.0, ge=1.0, le=22.0)
+    target_width: int | None = Field(default=None, ge=1, le=2048)
+    target_height: int | None = Field(default=None, ge=1, le=2048)
 
 
 class GenerateAllRequest(BaseModel):
@@ -32,6 +34,8 @@ class GenerateAllRequest(BaseModel):
     frame_count: int = Field(default=4, ge=2, le=12)
     lore_model: str | None = "openai/gpt-4o-mini"
     sound_duration: float = Field(default=3.0, ge=1.0, le=22.0)
+    target_width: int | None = Field(default=None, ge=1, le=2048)
+    target_height: int | None = Field(default=None, ge=1, le=2048)
 
 
 @router.post("/generate/all")
@@ -103,6 +107,11 @@ async def _run_image(job: Job, req) -> None:
 
         image_bytes, revised_prompt = await generate_image(req.prompt, req.style or "pixel")
 
+        if req.target_width or req.target_height:
+            w = req.target_width or req.target_height  # square if only one dim given
+            h = req.target_height or req.target_width
+            image_bytes = resize_image_bytes(image_bytes, w, h)
+
         await job.queue.put(JobEvent(progress=80, message="Saving to archive...", status="running"))
 
         filename = f"{req.name.lower().replace(' ', '_')}_image.png"
@@ -147,6 +156,8 @@ async def _run_spritesheet(job: Job, req) -> None:
             prompt=req.prompt,
             style=req.style or "pixel",
             frame_count=req.frame_count,
+            target_width=req.target_width,
+            target_height=req.target_height,
         )
 
         await job.queue.put(JobEvent(progress=90, message="Saving to archive...", status="running"))

@@ -1,6 +1,8 @@
 import base64
+import io
 
 from openai import AsyncOpenAI
+from PIL import Image
 
 from ..config import settings
 
@@ -43,3 +45,12 @@ async def generate_image(prompt: str, style: str) -> tuple[bytes, str]:
     revised_prompt = image_data.revised_prompt or full_prompt
 
     return image_bytes, revised_prompt
+
+
+def resize_image_bytes(data: bytes, width: int, height: int) -> bytes:
+    """Resize image to exact dimensions using nearest-neighbor (correct for pixel art)."""
+    img = Image.open(io.BytesIO(data)).convert("RGBA")
+    img = img.resize((width, height), Image.NEAREST)
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    return buf.getvalue()

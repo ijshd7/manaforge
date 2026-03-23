@@ -39,6 +39,8 @@ export interface GenerateRequest {
   frame_count?: number;
   lore_model?: string;
   sound_duration?: number;
+  target_width?: number | null;
+  target_height?: number | null;
 }
 
 export interface OpenRouterModel {

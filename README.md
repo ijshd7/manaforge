@@ -73,7 +73,7 @@ Install [Docker Desktop for Mac](https://www.docker.com/products/docker-desktop/
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/your-username/manaforge.git
+git clone https://github.com/ijshd7/manaforge.git
 cd manaforge
 ```
 

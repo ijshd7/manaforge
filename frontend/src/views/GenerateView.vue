@@ -10,6 +10,39 @@ import { useToast } from "@/components/ui/toast/use-toast";
 const store = useGenerationStore();
 const { toast } = useToast();
 
+interface SizePreset {
+  label: string;
+  width: number | null;
+  height: number | null;
+}
+
+const SIZE_PRESETS: SizePreset[] = [
+  { label: "Original (1024×1024)", width: null, height: null },
+  // Tiles & icons
+  { label: "16×16 — tile / icon", width: 16, height: 16 },
+  { label: "24×24 — small icon", width: 24, height: 24 },
+  { label: "32×32 — tile / small sprite", width: 32, height: 32 },
+  { label: "48×48 — medium tile", width: 48, height: 48 },
+  { label: "64×64 — large icon / UI element", width: 64, height: 64 },
+  // Character sprites (square)
+  { label: "96×96 — small character", width: 96, height: 96 },
+  { label: "128×128 — character sprite", width: 128, height: 128 },
+  { label: "256×256 — detailed character", width: 256, height: 256 },
+  // Character sprites (tall)
+  { label: "32×64 — tall sprite (2:1)", width: 32, height: 64 },
+  { label: "48×64 — tall sprite (3:4)", width: 48, height: 64 },
+  { label: "64×128 — tall character", width: 64, height: 128 },
+  // Card art (portrait)
+  { label: "64×96 — card thumbnail", width: 64, height: 96 },
+  { label: "128×192 — card illustration", width: 128, height: 192 },
+  { label: "256×384 — full card art", width: 256, height: 384 },
+  // Scenes & backgrounds (landscape)
+  { label: "192×128 — event scene (3:2)", width: 192, height: 128 },
+  { label: "256×192 — scene panel", width: 256, height: 192 },
+  { label: "512×384 — wide scene", width: 512, height: 384 },
+  { label: "1024×576 — HD background (16:9)", width: 1024, height: 576 },
+];
+
 // Form state
 const prompt = ref("");
 const name = ref("");
@@ -18,6 +51,7 @@ const frameCount = ref(4);
 const soundDuration = ref(3);
 const selectedLoreModel = ref("openai/gpt-4o-mini");
 const selectedTypes = ref<Set<AssetType>>(new Set(["image"]));
+const selectedSizePreset = ref<SizePreset>(SIZE_PRESETS[0]);
 const models = ref<OpenRouterModel[]>([]);
 const modelsLoading = ref(false);
 
@@ -59,6 +93,8 @@ const payload = computed<GenerateRequest>(() => ({
   frame_count: frameCount.value,
   lore_model: selectedLoreModel.value,
   sound_duration: soundDuration.value,
+  target_width: selectedSizePreset.value.width,
+  target_height: selectedSizePreset.value.height,
 }));
 
 async function handleGenerate() {
@@ -184,6 +220,26 @@ async function handleGenerate() {
               <span class="capitalize">{{ type }}</span>
             </button>
           </div>
+        </div>
+
+        <!-- Output size (image + spritesheet) -->
+        <div
+          v-if="selectedTypes.has('image') || selectedTypes.has('spritesheet')"
+          class="space-y-1.5"
+        >
+          <label class="text-sm font-medium">Output Size</label>
+          <select
+            v-model="selectedSizePreset"
+            class="w-full border-2 border-secondary bg-secondary px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
+          >
+            <option
+              v-for="preset in SIZE_PRESETS"
+              :key="preset.label"
+              :value="preset"
+            >
+              {{ preset.label }}
+            </option>
+          </select>
         </div>
 
         <!-- Spritesheet options -->
