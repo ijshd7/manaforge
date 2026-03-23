@@ -36,11 +36,21 @@ const SIZE_PRESETS: SizePreset[] = [
   { label: "64×96 — card thumbnail", width: 64, height: 96 },
   { label: "128×192 — card illustration", width: 128, height: 192 },
   { label: "256×384 — full card art", width: 256, height: 384 },
+  { label: "440×560 — card art (11:14)", width: 440, height: 560 },
+  { label: "512×768 — tall card art (2:3)", width: 512, height: 768 },
+  { label: "786×1024 — large portrait", width: 786, height: 1024 },
+  // Square presets
+  { label: "384×384 — medium square", width: 384, height: 384 },
+  { label: "512×512 — large square", width: 512, height: 512 },
   // Scenes & backgrounds (landscape)
   { label: "192×128 — event scene (3:2)", width: 192, height: 128 },
   { label: "256×192 — scene panel", width: 256, height: 192 },
   { label: "512×384 — wide scene", width: 512, height: 384 },
+  { label: "1024×512 — panoramic banner (2:1)", width: 1024, height: 512 },
   { label: "1024×576 — HD background (16:9)", width: 1024, height: 576 },
+  { label: "1280×768 — widescreen background", width: 1280, height: 768 },
+  // UI elements
+  { label: "200×40 — UI button / bar", width: 200, height: 40 },
 ];
 
 // Form state
