@@ -16,6 +16,19 @@ interface SizePreset {
   height: number | null;
 }
 
+interface MusicModelVersion {
+  id: string;
+  label: string;
+}
+
+// MusicGen model versions exposed by Replicate (`meta/musicgen`).
+const MUSIC_MODEL_VERSIONS: MusicModelVersion[] = [
+  { id: "stereo-large", label: "Stereo Large" },
+  { id: "stereo-melody-large", label: "Stereo Melody Large" },
+  { id: "large", label: "Large (mono)" },
+  { id: "melody-large", label: "Melody Large (mono)" },
+];
+
 const SIZE_PRESETS: SizePreset[] = [
   { label: "Original (1024×1024)", width: null, height: null },
   // Tiles & icons
@@ -60,12 +73,17 @@ const style = ref<"pixel" | "handdrawn">("pixel");
 const frameCount = ref(4);
 const soundDuration = ref(3);
 const selectedLoreModel = ref("openai/gpt-4o-mini");
+const musicDuration = ref(8);
+const musicModelVersion = ref("stereo-large");
+const musicTemperature = ref(1.0);
+const musicGuidance = ref(3);
+const showMusicAdvanced = ref(false);
 const selectedTypes = ref<Set<AssetType>>(new Set(["image"]));
 const selectedSizePreset = ref<SizePreset>(SIZE_PRESETS[0]);
 const models = ref<OpenRouterModel[]>([]);
 const modelsLoading = ref(false);
 
-const ALL_TYPES: AssetType[] = ["image", "spritesheet", "sound", "lore"];
+const ALL_TYPES: AssetType[] = ["image", "spritesheet", "sound", "lore", "music"];
 const isAllSelected = computed(() => ALL_TYPES.every((t) => selectedTypes.value.has(t)));
 
 onMounted(async () => {
@@ -105,6 +123,10 @@ const payload = computed<GenerateRequest>(() => ({
   sound_duration: soundDuration.value,
   target_width: selectedSizePreset.value.width,
   target_height: selectedSizePreset.value.height,
+  music_duration: musicDuration.value,
+  music_model_version: musicModelVersion.value,
+  music_temperature: musicTemperature.value,
+  music_guidance: musicGuidance.value,
 }));
 
 async function handleGenerate() {
@@ -122,7 +144,7 @@ async function handleGenerate() {
   }
 
   try {
-    if (isAllSelected.value || selectedTypes.value.size === 4) {
+    if (isAllSelected.value || selectedTypes.value.size === ALL_TYPES.length) {
       await store.startAll(payload.value);
     } else if (selectedTypes.value.size === 1) {
       const type = [...selectedTypes.value][0];
@@ -302,6 +324,88 @@ async function handleGenerate() {
               {{ selectedLoreModel }}
             </option>
           </select>
+        </div>
+
+        <!-- Music options -->
+        <div v-if="selectedTypes.has('music')" class="space-y-4">
+          <div class="space-y-1.5">
+            <label class="text-sm font-medium">
+              Music Duration: <span class="text-muted-foreground">{{ musicDuration }}s</span>
+            </label>
+            <input
+              v-model.number="musicDuration"
+              type="range"
+              min="3"
+              max="30"
+              step="1"
+              class="w-full accent-primary"
+            />
+            <div class="flex justify-between text-xs text-muted-foreground">
+              <span>3s</span>
+              <span>30s</span>
+            </div>
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="text-sm font-medium">Music Model</label>
+            <select
+              v-model="musicModelVersion"
+              class="w-full border-2 border-secondary bg-secondary px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
+            >
+              <option v-for="mv in MUSIC_MODEL_VERSIONS" :key="mv.id" :value="mv.id">
+                {{ mv.label }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Advanced (collapsible) -->
+          <div class="space-y-1.5">
+            <button
+              type="button"
+              class="text-xs text-muted-foreground hover:text-primary transition-colors"
+              @click="showMusicAdvanced = !showMusicAdvanced"
+            >
+              {{ showMusicAdvanced ? "▾" : "▸" }} Advanced
+            </button>
+            <div v-if="showMusicAdvanced" class="space-y-4 pt-1">
+              <div class="space-y-1.5">
+                <label class="text-sm font-medium">
+                  Temperature:
+                  <span class="text-muted-foreground">{{ musicTemperature.toFixed(1) }}</span>
+                </label>
+                <input
+                  v-model.number="musicTemperature"
+                  type="range"
+                  min="0"
+                  max="2"
+                  step="0.1"
+                  class="w-full accent-primary"
+                />
+                <div class="flex justify-between text-xs text-muted-foreground">
+                  <span>0.0</span>
+                  <span>2.0</span>
+                </div>
+              </div>
+
+              <div class="space-y-1.5">
+                <label class="text-sm font-medium">
+                  Guidance: <span class="text-muted-foreground">{{ musicGuidance }}</span>
+                </label>
+                <input
+                  v-model.number="musicGuidance"
+                  type="range"
+                  min="1"
+                  max="10"
+                  step="1"
+                  class="w-full accent-primary"
+                />
+                <div class="flex justify-between text-xs text-muted-foreground">
+                  <span>1</span>
+                  <span>10</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
