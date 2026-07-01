@@ -31,6 +31,10 @@ class GenerateRequest(BaseModel):
     music_temperature: float = Field(default=1.0, ge=0.0, le=2.0)
     music_guidance: int = Field(default=3, ge=1, le=10)
     music_genre: str | None = None
+    # Optional reference clip for melody conditioning: a URL or a base64 `data:`
+    # URI. Bounded to guard the single-process server against a huge upload.
+    music_input_audio: str | None = Field(default=None, max_length=15_000_000)
+    music_continuation: bool = False
 
 
 class GenerateAllRequest(BaseModel):
@@ -47,6 +51,8 @@ class GenerateAllRequest(BaseModel):
     music_temperature: float = Field(default=1.0, ge=0.0, le=2.0)
     music_guidance: int = Field(default=3, ge=1, le=10)
     music_genre: str | None = None
+    music_input_audio: str | None = Field(default=None, max_length=15_000_000)
+    music_continuation: bool = False
 
 
 def _apply_music_genre(prompt: str, genre: str | None) -> str:
@@ -277,6 +283,8 @@ async def _run_music(job: Job, req) -> None:
             model_version=req.music_model_version or "stereo-large",
             temperature=req.music_temperature,
             classifier_free_guidance=req.music_guidance,
+            input_audio=req.music_input_audio,
+            continuation=req.music_continuation,
             on_progress=on_progress,
         )
 

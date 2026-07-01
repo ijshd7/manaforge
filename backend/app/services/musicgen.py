@@ -31,6 +31,8 @@ async def generate_music(
     model_version: str = "stereo-large",
     temperature: float = 1.0,
     classifier_free_guidance: int = 3,
+    input_audio: str | None = None,
+    continuation: bool = False,
     on_progress: Callable[[int, str], Awaitable[None]] | None = None,
 ) -> tuple[bytes, dict]:
     """
@@ -40,23 +42,31 @@ async def generate_music(
     the resulting audio and returns (mp3_bytes, metadata). Calls ``on_progress``
     once per poll with a progress percentage (20..70) and a status message.
 
+    Melody conditioning: pass ``input_audio`` (a URL or a base64 ``data:`` URI of a
+    reference clip) to seed the generation. ``continuation=True`` continues the clip;
+    ``continuation=False`` mimics its melody (which needs a ``*-melody`` model version).
+    These fields are only sent to Replicate when a reference clip is supplied, so
+    ordinary text-to-music requests are unchanged.
+
     Raises ServiceError on a failed/canceled prediction or a poll timeout.
     """
     headers = {
         "Authorization": f"Bearer {settings.replicate_api_token}",
         "Content-Type": "application/json",
     }
-    payload = {
-        "input": {
-            "prompt": prompt,
-            "duration": duration,
-            "model_version": model_version,
-            "output_format": "mp3",
-            "temperature": temperature,
-            "classifier_free_guidance": classifier_free_guidance,
-            "normalization_strategy": "peak",
-        }
+    music_input = {
+        "prompt": prompt,
+        "duration": duration,
+        "model_version": model_version,
+        "output_format": "mp3",
+        "temperature": temperature,
+        "classifier_free_guidance": classifier_free_guidance,
+        "normalization_strategy": "peak",
     }
+    if input_audio:
+        music_input["input_audio"] = input_audio
+        music_input["continuation"] = continuation
+    payload = {"input": music_input}
 
     async with httpx.AsyncClient(timeout=60.0) as client:
         # 1. Create the prediction.
@@ -120,4 +130,9 @@ async def generate_music(
         "classifier_free_guidance": classifier_free_guidance,
         "replicate_id": prediction_id,
     }
+    if input_audio:
+        # Record that this clip was seeded from a reference melody (the raw clip
+        # itself is not persisted — only the fact + mode, à la the genre flag).
+        metadata["melody_conditioned"] = True
+        metadata["continuation"] = continuation
     return audio_bytes, metadata

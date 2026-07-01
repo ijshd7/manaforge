@@ -46,6 +46,10 @@ export interface GenerateRequest {
   music_temperature?: number;
   music_guidance?: number;
   music_genre?: string | null;
+  // Melody conditioning: base64 `data:` URI of an optional reference clip, plus
+  // whether to continue from it (true) or mimic its melody (false).
+  music_input_audio?: string | null;
+  music_continuation?: boolean;
 }
 
 export interface OpenRouterModel {

@@ -43,6 +43,45 @@ describe("GenerateView — music options block", () => {
     expect(wrapper.text()).toContain("Stereo Large");
   });
 
+  it("shows the melody conditioning reference-clip control after selecting Music", async () => {
+    const wrapper = mount(GenerateView);
+    expect(wrapper.find('input[type="file"][accept="audio/*"]').exists()).toBe(false);
+
+    const musicToggle = findButtonByText(wrapper, "music");
+    if (!musicToggle) throw new Error("Music type toggle button not found");
+    await musicToggle.trigger("click");
+
+    expect(wrapper.text()).toContain("Reference Melody");
+    // A file input scoped to audio is present for uploading the seed clip.
+    expect(wrapper.find('input[type="file"][accept="audio/*"]').exists()).toBe(true);
+  });
+
+  it("attaches a reference clip, reveals the continuation toggle, and clears it on Remove", async () => {
+    const wrapper = mount(GenerateView);
+    const musicToggle = findButtonByText(wrapper, "music");
+    if (!musicToggle) throw new Error("Music type toggle button not found");
+    await musicToggle.trigger("click");
+
+    const fileInput = wrapper.find('input[type="file"][accept="audio/*"]');
+    const file = new File(["fake-audio-bytes"], "seed.mp3", { type: "audio/mpeg" });
+    Object.defineProperty(fileInput.element, "files", { value: [file], configurable: true });
+    await fileInput.trigger("change");
+
+    // FileReader.readAsDataURL resolves asynchronously — wait for the chip to render.
+    await vi.waitFor(() => expect(wrapper.text()).toContain("seed.mp3"));
+    // The continuation toggle only appears once a clip is attached.
+    expect(wrapper.text()).toContain("Continue from clip");
+
+    const removeBtn = findButtonByText(wrapper, "Remove");
+    if (!removeBtn) throw new Error("Remove button not found");
+    await removeBtn.trigger("click");
+
+    // App state cleared and the native input reset (so re-selecting refires change).
+    expect(wrapper.text()).not.toContain("seed.mp3");
+    expect(wrapper.text()).not.toContain("Continue from clip");
+    expect((fileInput.element as HTMLInputElement).value).toBe("");
+  });
+
   it("toggles the advanced temperature and guidance controls", async () => {
     const wrapper = mount(GenerateView);
     const musicToggle = findButtonByText(wrapper, "music");

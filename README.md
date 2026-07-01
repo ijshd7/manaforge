@@ -157,7 +157,7 @@ curl http://localhost:8000/api/models | head -c 200
 4. Select which asset types to generate, or click **Select all**
    - Spritesheet: choose how many animation frames (2–12)
    - Sound: choose duration (1–22 seconds)
-   - Music: pick a genre preset (or free-form), duration (3–30 seconds), and model version; open **Advanced** for temperature and guidance
+   - Music: pick a genre preset (or free-form), duration (3–30 seconds), and model version; open **Advanced** for temperature and guidance. Optionally upload a **Reference Melody** clip to seed the generation — leave *Continue from clip* off to match its melody (needs a Melody model version) or turn it on to continue from it
    - Lore: choose the OpenRouter model from the dropdown
 5. Click **Generate** — progress bars appear for each asset type in real time
 6. Once done, preview and download assets directly from the generation cards

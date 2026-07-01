@@ -100,6 +100,10 @@ const musicModelVersion = ref("stereo-large");
 const musicTemperature = ref(1.0);
 const musicGuidance = ref(3);
 const selectedMusicGenre = ref<MusicGenre>(MUSIC_GENRES[0]);
+const musicInputAudio = ref<string | null>(null);
+const musicInputAudioName = ref<string | null>(null);
+const musicContinuation = ref(false);
+const melodyFileInput = ref<HTMLInputElement | null>(null);
 const showMusicAdvanced = ref(false);
 const selectedTypes = ref<Set<AssetType>>(new Set(["image"]));
 const selectedSizePreset = ref<SizePreset>(SIZE_PRESETS[0]);
@@ -137,6 +141,50 @@ function toggleAll() {
   }
 }
 
+// Reference clip cap. Melody conditioning only needs a short seed; the clip is
+// base64-encoded into the JSON payload, so bound it to protect the backend.
+const MAX_MELODY_BYTES = 10 * 1024 * 1024; // 10 MB
+
+// Bumped on every new selection / clear so a slow FileReader from a superseded
+// pick can't clobber a newer one (and an in-flight read is dropped on clear).
+let melodyReadToken = 0;
+
+function onMelodyFileChange(e: Event) {
+  const input = e.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) return;
+  if (file.size > MAX_MELODY_BYTES) {
+    toast({
+      title: "Reference clip too large",
+      description: "Please use an audio clip under 10 MB.",
+      variant: "destructive",
+    });
+    input.value = "";
+    return;
+  }
+  const token = ++melodyReadToken;
+  const reader = new FileReader();
+  reader.onload = () => {
+    if (token !== melodyReadToken) return; // superseded by a newer selection/clear
+    musicInputAudio.value = typeof reader.result === "string" ? reader.result : null;
+    musicInputAudioName.value = file.name;
+  };
+  reader.onerror = () => {
+    if (token !== melodyReadToken) return;
+    toast({ title: "Failed to read reference clip", variant: "destructive" });
+    input.value = "";
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearMelodyFile() {
+  melodyReadToken++; // invalidate any in-flight read
+  musicInputAudio.value = null;
+  musicInputAudioName.value = null;
+  // Reset the native <input> too, or re-selecting the same file won't refire change.
+  if (melodyFileInput.value) melodyFileInput.value.value = "";
+}
+
 const payload = computed<GenerateRequest>(() => ({
   prompt: prompt.value,
   name: name.value || prompt.value.slice(0, 40),
@@ -151,6 +199,8 @@ const payload = computed<GenerateRequest>(() => ({
   music_temperature: musicTemperature.value,
   music_guidance: musicGuidance.value,
   music_genre: selectedMusicGenre.value.value,
+  music_input_audio: musicInputAudio.value,
+  music_continuation: musicContinuation.value,
 }));
 
 async function handleGenerate() {
@@ -392,6 +442,43 @@ async function handleGenerate() {
                 {{ mv.label }}
               </option>
             </select>
+          </div>
+
+          <!-- Melody conditioning (optional reference clip) -->
+          <div class="space-y-1.5">
+            <label class="text-sm font-medium">
+              Reference Melody <span class="text-muted-foreground">(optional)</span>
+            </label>
+            <input
+              ref="melodyFileInput"
+              type="file"
+              accept="audio/*"
+              class="w-full text-sm text-muted-foreground file:mr-3 file:border-2 file:border-secondary file:bg-secondary file:px-3 file:py-1.5 file:text-sm file:font-medium hover:file:border-primary"
+              @change="onMelodyFileChange"
+            />
+            <div
+              v-if="musicInputAudioName"
+              class="flex items-center justify-between gap-2 text-xs text-muted-foreground"
+            >
+              <span class="truncate">🎼 {{ musicInputAudioName }}</span>
+              <button
+                type="button"
+                class="hover:text-primary transition-colors"
+                @click="clearMelodyFile"
+              >
+                Remove
+              </button>
+            </div>
+            <template v-if="musicInputAudio">
+              <label class="flex items-center gap-2 text-sm font-medium">
+                <input v-model="musicContinuation" type="checkbox" class="accent-primary" />
+                Continue from clip
+                <span class="text-muted-foreground">(off = match melody)</span>
+              </label>
+              <p class="text-xs text-muted-foreground">
+                Melody matching needs a Melody model version (e.g. Stereo Melody Large).
+              </p>
+            </template>
           </div>
 
           <!-- Advanced (collapsible) -->

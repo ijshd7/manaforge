@@ -1,4 +1,5 @@
 import asyncio
+import json
 
 import httpx
 import pytest
@@ -172,3 +173,63 @@ def test_generate_music_succeeded_empty_list_output_raises(install_transport):
         asyncio.run(musicgen.generate_music("empty list output"))
 
     assert excinfo.value.service == "replicate"
+
+
+def _make_capturing_handler(captured, poll_status="succeeded"):
+    """Handler that records the create-prediction request body into ``captured``."""
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        url = str(request.url)
+        if url.endswith("/predictions"):
+            captured["body"] = json.loads(request.content)
+            return httpx.Response(
+                201,
+                json={"id": PREDICTION_ID, "status": "starting", "urls": {"get": POLL_URL}},
+            )
+        if PREDICTION_ID in url:
+            return httpx.Response(
+                200, json={"id": PREDICTION_ID, "status": poll_status, "output": AUDIO_URL}
+            )
+        if "replicate.delivery" in url:
+            return httpx.Response(200, content=AUDIO_BYTES)
+        return httpx.Response(404, json={"detail": f"unexpected url {url}"})
+
+    return handler
+
+
+def test_generate_music_melody_conditioning_passthrough(install_transport):
+    # A reference clip + continuation flag must reach Replicate's `input`, and the
+    # fact of conditioning must be recorded in the returned metadata.
+    captured: dict = {}
+    install_transport(_make_capturing_handler(captured))
+
+    audio, metadata = asyncio.run(
+        musicgen.generate_music(
+            "seeded theme",
+            model_version="stereo-melody-large",
+            input_audio="data:audio/mpeg;base64,QUJD",
+            continuation=True,
+        )
+    )
+
+    assert audio == AUDIO_BYTES
+    sent = captured["body"]["input"]
+    assert sent["input_audio"] == "data:audio/mpeg;base64,QUJD"
+    assert sent["continuation"] is True
+    assert metadata["melody_conditioned"] is True
+    assert metadata["continuation"] is True
+
+
+def test_generate_music_without_input_audio_omits_conditioning(install_transport):
+    # No reference clip → no input_audio/continuation sent, and no conditioning
+    # keys leak into metadata (keeps plain text-to-music requests unchanged).
+    captured: dict = {}
+    install_transport(_make_capturing_handler(captured))
+
+    _, metadata = asyncio.run(musicgen.generate_music("plain theme"))
+
+    sent = captured["body"]["input"]
+    assert "input_audio" not in sent
+    assert "continuation" not in sent
+    assert "melody_conditioned" not in metadata
+    assert "continuation" not in metadata

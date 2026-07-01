@@ -181,6 +181,33 @@ def test_generate_music_blank_genre_is_noop(client, mock_music):
     assert "genre" not in mock_music["metadata"]
 
 
+def test_generate_music_melody_conditioning_wires_through(client, mock_music):
+    # An uploaded reference clip (base64 data URI) + continuation flag must flow
+    # from the request through the runner into the service call.
+    resp = client.post(
+        "/api/generate/music",
+        json={
+            "prompt": "seed me",
+            "name": "Seeded",
+            "music_input_audio": "data:audio/mpeg;base64,QUJD",
+            "music_continuation": True,
+        },
+    )
+    assert resp.status_code == 200
+    assert mock_music["input_audio"] == "data:audio/mpeg;base64,QUJD"
+    assert mock_music["continuation"] is True
+
+
+def test_generate_music_defaults_have_no_melody_conditioning(client, mock_music):
+    resp = client.post(
+        "/api/generate/music",
+        json={"prompt": "plain", "name": "Plain"},
+    )
+    assert resp.status_code == 200
+    assert mock_music["input_audio"] is None
+    assert mock_music["continuation"] is False
+
+
 def test_apply_music_genre_helper():
     apply = generate_router._apply_music_genre
     assert apply("battle", "chiptune") == "chiptune, battle"
