@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/ijshd7/manaforge/actions/workflows/ci.yml/badge.svg)](https://github.com/ijshd7/manaforge/actions/workflows/ci.yml)
 
-A self-hosted game asset generation dashboard. Generate images, spritesheets, sounds, and lore from a single prompt using AI APIs, with a persistent archive to browse and download everything you've created.
+A self-hosted game asset generation dashboard. Generate images, spritesheets, sounds, music, and lore from a single prompt using AI APIs, with a persistent archive to browse and download everything you've created.
 
 ## Demo
 
@@ -15,8 +15,9 @@ A self-hosted game asset generation dashboard. Generate images, spritesheets, so
 - **Images** — Single illustrations via DALL-E 3 (pixel art or hand-drawn style)
 - **Spritesheets** — Animation frames generated individually and stitched into a PNG grid
 - **Sounds** — Sound effects via ElevenLabs
+- **Music** — Instrumental game music via Replicate MusicGen (genre presets, duration, model-version and advanced controls)
 - **Lore** — World-building text via OpenRouter (choose any model from the dropdown)
-- **Generate All** — Kick off all four asset types in parallel with one click
+- **Generate All** — Kick off all five asset types in parallel with one click
 - **Archive** — Browse, preview, and download all previously generated assets
 - **Real-time progress** — Server-Sent Events with per-asset progress bars during generation
 - **Live archive** — PocketBase real-time subscription keeps the archive updated automatically
@@ -30,6 +31,7 @@ A self-hosted game asset generation dashboard. Generate images, spritesheets, so
 | Database | PocketBase v0.36.6 |
 | Images | OpenAI DALL-E 3 |
 | Sounds | ElevenLabs Sound Effects |
+| Music | Replicate MusicGen (`meta/musicgen`) |
 | Lore | OpenRouter (model selectable in UI) |
 
 ## Prerequisites
@@ -155,6 +157,7 @@ curl http://localhost:8000/api/models | head -c 200
 4. Select which asset types to generate, or click **Select all**
    - Spritesheet: choose how many animation frames (2–12)
    - Sound: choose duration (1–22 seconds)
+   - Music: pick a genre preset (or free-form), duration (3–30 seconds), and model version; open **Advanced** for temperature and guidance
    - Lore: choose the OpenRouter model from the dropdown
 5. Click **Generate** — progress bars appear for each asset type in real time
 6. Once done, preview and download assets directly from the generation cards
@@ -252,8 +255,8 @@ The FastAPI backend exposes:
 
 | Endpoint | Description |
 |----------|-------------|
-| `POST /api/generate/{type}` | Start generation for a single type (`image`, `spritesheet`, `sound`, `lore`) |
-| `POST /api/generate/all` | Start generation for all four types in parallel |
+| `POST /api/generate/{type}` | Start generation for a single type (`image`, `spritesheet`, `sound`, `music`, `lore`) |
+| `POST /api/generate/all` | Start generation for all five types in parallel |
 | `GET /api/jobs/{job_id}/stream` | SSE stream for a job's progress |
 | `GET /api/models` | List available OpenRouter models |
 | `GET /health` | Health check |
@@ -267,9 +270,12 @@ Interactive API docs are available at http://localhost:8000/docs while the backe
 | Image | OpenAI DALL-E 3 | ~$0.04/image (standard quality) |
 | Spritesheet (4 frames) | OpenAI DALL-E 3 | ~$0.16 (4 × $0.04) |
 | Sound | ElevenLabs | ~$0.008/credit |
+| Music | Replicate MusicGen | ~$0.02–0.10/clip (billed by compute-second) |
 | Lore | OpenRouter (e.g. GPT-4o-mini) | ~$0.0002/request |
 
 Spritesheet generation is the most expensive operation since each frame is a separate DALL-E 3 call. DALL-E 3 also has a rate limit of 5 images/minute on the default tier — generating a 6+ frame spritesheet will take at least a minute.
+
+Music is the slowest operation: Replicate MusicGen is **asynchronous** — the backend creates a prediction, polls until it succeeds, then downloads the audio — so a clip typically takes 30–90 seconds (longer durations and the `stereo-*` model versions are slower and pricier). Replicate bills by compute-second, so exact cost scales with clip length and the hardware Replicate assigns; keep durations short to control cost. The generation card shows real incremental progress while it composes.
 
 ## License
 
