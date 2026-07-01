@@ -53,6 +53,7 @@ async def generate_all(req: GenerateAllRequest, background_tasks: BackgroundTask
     job_spritesheet = create_job()
     job_sound = create_job()
     job_lore = create_job()
+    job_music = create_job()
 
     background_tasks.add_task(
         _run_all_parallel,
@@ -60,6 +61,7 @@ async def generate_all(req: GenerateAllRequest, background_tasks: BackgroundTask
         job_spritesheet,
         job_sound,
         job_lore,
+        job_music,
         req,
     )
 
@@ -69,6 +71,7 @@ async def generate_all(req: GenerateAllRequest, background_tasks: BackgroundTask
             "spritesheet": job_spritesheet.id,
             "sound": job_sound.id,
             "lore": job_lore.id,
+            "music": job_music.id,
         }
     }
 
@@ -98,6 +101,7 @@ async def _run_all_parallel(
     job_spritesheet: Job,
     job_sound: Job,
     job_lore: Job,
+    job_music: Job,
     req: GenerateAllRequest,
 ) -> None:
     await asyncio.gather(
@@ -105,6 +109,7 @@ async def _run_all_parallel(
         _run_spritesheet(job_spritesheet, req),
         _run_sound(job_sound, req),
         _run_lore(job_lore, req),
+        _run_music(job_music, req),
         return_exceptions=True,
     )
 

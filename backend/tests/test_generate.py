@@ -33,6 +33,35 @@ def mock_music(monkeypatch):
     return calls
 
 
+@pytest.fixture
+def mock_all_services(monkeypatch, mock_music):
+    """Stub every provider so ``/generate/all`` runs hermetically.
+
+    Builds on ``mock_music`` (which patches ``generate_music`` + ``create_asset``)
+    and stubs the other four providers so the parallel runner makes no real
+    network calls — otherwise their 120s ``httpx`` timeouts could hang a
+    network-blocked CI. Returns ``mock_music``'s capture dict.
+    """
+
+    async def fake_image(prompt, style):
+        return b"IMG", "revised prompt"
+
+    async def fake_spritesheet(job, prompt, style, frame_count, target_width, target_height):
+        return b"SHEET", {"frame_count": frame_count}
+
+    async def fake_sound(prompt, duration):
+        return b"SND"
+
+    async def fake_lore(prompt, model):
+        return "once upon a time"
+
+    monkeypatch.setattr(generate_router, "generate_image", fake_image)
+    monkeypatch.setattr(generate_router, "generate_spritesheet", fake_spritesheet)
+    monkeypatch.setattr(generate_router, "generate_sound", fake_sound)
+    monkeypatch.setattr(generate_router, "generate_lore", fake_lore)
+    return mock_music
+
+
 def _drain(job_id):
     """Collect every JobEvent the (already-completed) background runner emitted."""
     job = get_job(job_id)
@@ -103,3 +132,23 @@ def test_generate_music_validates_duration_bounds(client):
         json={"prompt": "x", "name": "y", "music_duration": 100},
     )
     assert resp.status_code == 422
+
+
+def test_generate_all_returns_five_job_ids(client, mock_all_services):
+    resp = client.post(
+        "/api/generate/all",
+        json={"prompt": "haunted forest", "name": "Haunted Forest"},
+    )
+    assert resp.status_code == 200
+
+    jobs = resp.json()["jobs"]
+    # Music is now the 5th type; the original four must remain present.
+    assert set(jobs) == {"image", "spritesheet", "sound", "lore", "music"}
+    assert all(jobs.values()), "every job id should be non-empty"
+    assert len(set(jobs.values())) == 5, "job ids must be distinct"
+
+    # Music is wired into the parallel gather, not just the return dict: its
+    # background runner ran to a terminal 'done' via the mocked service.
+    music_events = _drain(jobs["music"])
+    assert music_events[-1].status == "done"
+    assert music_events[-1].data["file_url"].endswith("haunted_forest_music.mp3")
