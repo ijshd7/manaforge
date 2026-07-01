@@ -21,12 +21,34 @@ interface MusicModelVersion {
   label: string;
 }
 
+interface MusicGenre {
+  label: string;
+  // Prepended to the prompt (and stored raw in metadata); null = free-form prompt.
+  value: string | null;
+}
+
 // MusicGen model versions exposed by Replicate (`meta/musicgen`).
 const MUSIC_MODEL_VERSIONS: MusicModelVersion[] = [
   { id: "stereo-large", label: "Stereo Large" },
   { id: "stereo-melody-large", label: "Stereo Melody Large" },
   { id: "large", label: "Large (mono)" },
   { id: "melody-large", label: "Melody Large (mono)" },
+];
+
+// Curated game-music genre presets. The value is prepended to the user's prompt
+// by the backend and saved raw in the asset metadata.
+const MUSIC_GENRES: MusicGenre[] = [
+  { label: "None (free-form)", value: null },
+  { label: "Chiptune", value: "chiptune 8-bit video game music" },
+  { label: "Orchestral", value: "epic orchestral cinematic score" },
+  { label: "Ambient Dungeon", value: "dark ambient dungeon exploration music" },
+  { label: "Battle Theme", value: "intense fast-paced battle theme" },
+  { label: "Boss Fight", value: "epic dramatic boss fight music" },
+  { label: "Tavern Folk", value: "cozy medieval tavern folk music" },
+  { label: "Overworld", value: "adventurous overworld exploration theme" },
+  { label: "Town Theme", value: "peaceful cheerful town theme" },
+  { label: "Mysterious", value: "mysterious eerie atmospheric music" },
+  { label: "Victory Fanfare", value: "triumphant heroic victory fanfare" },
 ];
 
 const SIZE_PRESETS: SizePreset[] = [
@@ -77,6 +99,7 @@ const musicDuration = ref(8);
 const musicModelVersion = ref("stereo-large");
 const musicTemperature = ref(1.0);
 const musicGuidance = ref(3);
+const selectedMusicGenre = ref<MusicGenre>(MUSIC_GENRES[0]);
 const showMusicAdvanced = ref(false);
 const selectedTypes = ref<Set<AssetType>>(new Set(["image"]));
 const selectedSizePreset = ref<SizePreset>(SIZE_PRESETS[0]);
@@ -127,6 +150,7 @@ const payload = computed<GenerateRequest>(() => ({
   music_model_version: musicModelVersion.value,
   music_temperature: musicTemperature.value,
   music_guidance: musicGuidance.value,
+  music_genre: selectedMusicGenre.value.value,
 }));
 
 async function handleGenerate() {
@@ -328,6 +352,18 @@ async function handleGenerate() {
 
         <!-- Music options -->
         <div v-if="selectedTypes.has('music')" class="space-y-4">
+          <div class="space-y-1.5">
+            <label class="text-sm font-medium">Genre</label>
+            <select
+              v-model="selectedMusicGenre"
+              class="w-full border-2 border-secondary bg-secondary px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
+            >
+              <option v-for="genre in MUSIC_GENRES" :key="genre.label" :value="genre">
+                {{ genre.label }}
+              </option>
+            </select>
+          </div>
+
           <div class="space-y-1.5">
             <label class="text-sm font-medium">
               Music Duration: <span class="text-muted-foreground">{{ musicDuration }}s</span>

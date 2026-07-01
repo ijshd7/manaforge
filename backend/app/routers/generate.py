@@ -30,6 +30,7 @@ class GenerateRequest(BaseModel):
     music_model_version: str | None = "stereo-large"
     music_temperature: float = Field(default=1.0, ge=0.0, le=2.0)
     music_guidance: int = Field(default=3, ge=1, le=10)
+    music_genre: str | None = None
 
 
 class GenerateAllRequest(BaseModel):
@@ -45,6 +46,19 @@ class GenerateAllRequest(BaseModel):
     music_model_version: str | None = "stereo-large"
     music_temperature: float = Field(default=1.0, ge=0.0, le=2.0)
     music_guidance: int = Field(default=3, ge=1, le=10)
+    music_genre: str | None = None
+
+
+def _apply_music_genre(prompt: str, genre: str | None) -> str:
+    """Prepend a predefined genre preset to the music prompt.
+
+    The raw genre is also stored in the asset's ``metadata`` (see ``_run_music``);
+    here it only steers the MusicGen prompt. A missing/blank genre is a no-op.
+    """
+    genre = (genre or "").strip()
+    if genre:
+        return f"{genre}, {prompt}"
+    return prompt
 
 
 @router.post("/generate/all")
@@ -258,13 +272,16 @@ async def _run_music(job: Job, req) -> None:
             await job.queue.put(JobEvent(progress=pct, message=message, status="running"))
 
         music_bytes, metadata = await generate_music(
-            req.prompt,
+            _apply_music_genre(req.prompt, req.music_genre),
             duration=req.music_duration,
             model_version=req.music_model_version or "stereo-large",
             temperature=req.music_temperature,
             classifier_free_guidance=req.music_guidance,
             on_progress=on_progress,
         )
+
+        if req.music_genre and req.music_genre.strip():
+            metadata = {**metadata, "genre": req.music_genre.strip()}
 
         await job.queue.put(JobEvent(progress=80, message="Saving to archive...", status="running"))
 

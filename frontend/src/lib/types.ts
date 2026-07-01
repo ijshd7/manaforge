@@ -45,6 +45,7 @@ export interface GenerateRequest {
   music_model_version?: string;
   music_temperature?: number;
   music_guidance?: number;
+  music_genre?: string | null;
 }
 
 export interface OpenRouterModel {

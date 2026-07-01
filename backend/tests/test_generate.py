@@ -26,6 +26,8 @@ def mock_music(monkeypatch):
     async def fake_create_asset(**kwargs):
         calls["asset_type"] = kwargs.get("asset_type")
         calls["filename"] = kwargs.get("filename")
+        calls["stored_prompt"] = kwargs.get("prompt")
+        calls["metadata"] = kwargs.get("metadata")
         return {"id": "rec_test", "file": kwargs.get("filename"), "type": "music"}
 
     monkeypatch.setattr(generate_router, "generate_music", fake_generate_music)
@@ -132,6 +134,59 @@ def test_generate_music_validates_duration_bounds(client):
         json={"prompt": "x", "name": "y", "music_duration": 100},
     )
     assert resp.status_code == 422
+
+
+def test_generate_music_genre_prepended_and_stored(client, mock_music):
+    # A predefined genre preset steers the MusicGen prompt AND is saved raw in metadata,
+    # while the asset's own `prompt` field keeps the user's original text.
+    resp = client.post(
+        "/api/generate/music",
+        json={
+            "prompt": "haunted castle",
+            "name": "Castle",
+            "music_genre": "epic orchestral cinematic score",
+        },
+    )
+    assert resp.status_code == 200
+
+    # The prompt sent to Replicate has the genre prepended...
+    assert mock_music["prompt"] == "epic orchestral cinematic score, haunted castle"
+    # ...but the archived asset keeps the raw user prompt.
+    assert mock_music["stored_prompt"] == "haunted castle"
+    # ...and the raw genre is persisted in metadata.
+    assert mock_music["metadata"]["genre"] == "epic orchestral cinematic score"
+
+
+def test_generate_music_no_genre_leaves_prompt_untouched(client, mock_music):
+    resp = client.post(
+        "/api/generate/music",
+        json={"prompt": "haunted castle", "name": "Castle"},
+    )
+    assert resp.status_code == 200
+
+    assert mock_music["prompt"] == "haunted castle"
+    # No genre key is added to metadata when none was chosen.
+    assert "genre" not in mock_music["metadata"]
+
+
+def test_generate_music_blank_genre_is_noop(client, mock_music):
+    # A whitespace-only genre must not corrupt the prompt or leak into metadata.
+    resp = client.post(
+        "/api/generate/music",
+        json={"prompt": "haunted castle", "name": "Castle", "music_genre": "   "},
+    )
+    assert resp.status_code == 200
+
+    assert mock_music["prompt"] == "haunted castle"
+    assert "genre" not in mock_music["metadata"]
+
+
+def test_apply_music_genre_helper():
+    apply = generate_router._apply_music_genre
+    assert apply("battle", "chiptune") == "chiptune, battle"
+    assert apply("battle", None) == "battle"
+    assert apply("battle", "") == "battle"
+    assert apply("battle", "  spaces  ") == "spaces, battle"
 
 
 def test_generate_all_returns_five_job_ids(client, mock_all_services):
