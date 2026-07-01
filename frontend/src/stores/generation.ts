@@ -46,7 +46,7 @@ export const useGenerationStore = defineStore("generation", () => {
     jobs.value = [];
     const { jobs: jobMap } = await generateAll(payload);
 
-    const types: AssetType[] = ["image", "spritesheet", "sound", "lore"];
+    const types: AssetType[] = ["image", "spritesheet", "sound", "lore", "music"];
     jobs.value = types.map((type) => ({
       jobId: jobMap[type],
       type,

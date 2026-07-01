@@ -1,4 +1,4 @@
-export type AssetType = "image" | "spritesheet" | "sound" | "lore";
+export type AssetType = "image" | "spritesheet" | "sound" | "lore" | "music";
 
 export interface Asset {
   id: string;
@@ -41,6 +41,10 @@ export interface GenerateRequest {
   sound_duration?: number;
   target_width?: number | null;
   target_height?: number | null;
+  music_duration?: number;
+  music_model_version?: string;
+  music_temperature?: number;
+  music_guidance?: number;
 }
 
 export interface OpenRouterModel {

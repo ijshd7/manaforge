@@ -225,7 +225,7 @@ async function handleGenerate() {
               @click="toggleType(type)"
             >
               <span class="text-base">{{
-                { image: "🖼️", spritesheet: "🎞️", sound: "🔊", lore: "📜" }[type]
+                { image: "🖼️", spritesheet: "🎞️", sound: "🔊", lore: "📜", music: "🎵" }[type]
               }}</span>
               <span class="capitalize">{{ type }}</span>
             </button>
