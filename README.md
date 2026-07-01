@@ -95,6 +95,10 @@ ELEVENLABS_API_KEY=...
 # Required for lore generation
 OPENROUTER_API_KEY=sk-or-...
 
+# Required for music generation (Replicate MusicGen) — get a token at
+# https://replicate.com/account/api-tokens
+REPLICATE_API_TOKEN=r8_...
+
 # PocketBase — internal Docker network URL (do not change for Docker)
 POCKETBASE_URL=http://pocketbase:8090
 

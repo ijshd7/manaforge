@@ -23,3 +23,8 @@ Thumbs.db
 
 # Docker
 *.log
+
+# Local AI tooling / planning (personal, not shared with the public repo)
+CLAUDE.md
+ROADMAP.md
+.claude/
