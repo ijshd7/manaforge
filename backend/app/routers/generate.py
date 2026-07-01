@@ -7,13 +7,14 @@ from pydantic import BaseModel, Field
 from ..jobs.store import Job, JobEvent, create_job
 from ..services.dalle import generate_image, resize_image_bytes
 from ..services.elevenlabs import generate_sound
+from ..services.musicgen import generate_music
 from ..services.openrouter import generate_lore
 from ..services.pocketbase import pb_client
 from ..services.spritesheet import generate_spritesheet
 
 router = APIRouter()
 
-AssetType = Literal["image", "spritesheet", "sound", "lore"]
+AssetType = Literal["image", "spritesheet", "sound", "lore", "music"]
 
 
 class GenerateRequest(BaseModel):
@@ -25,6 +26,10 @@ class GenerateRequest(BaseModel):
     sound_duration: float = Field(default=3.0, ge=1.0, le=22.0)
     target_width: int | None = Field(default=None, ge=1, le=2048)
     target_height: int | None = Field(default=None, ge=1, le=2048)
+    music_duration: int = Field(default=8, ge=3, le=30)
+    music_model_version: str | None = "stereo-large"
+    music_temperature: float = Field(default=1.0, ge=0.0, le=2.0)
+    music_guidance: int = Field(default=3, ge=1, le=10)
 
 
 class GenerateAllRequest(BaseModel):
@@ -36,6 +41,10 @@ class GenerateAllRequest(BaseModel):
     sound_duration: float = Field(default=3.0, ge=1.0, le=22.0)
     target_width: int | None = Field(default=None, ge=1, le=2048)
     target_height: int | None = Field(default=None, ge=1, le=2048)
+    music_duration: int = Field(default=8, ge=3, le=30)
+    music_model_version: str | None = "stereo-large"
+    music_temperature: float = Field(default=1.0, ge=0.0, le=2.0)
+    music_guidance: int = Field(default=3, ge=1, le=10)
 
 
 @router.post("/generate/all")
@@ -77,6 +86,7 @@ async def generate_single(
         "spritesheet": _run_spritesheet,
         "sound": _run_sound,
         "lore": _run_lore,
+        "music": _run_music,
     }
 
     background_tasks.add_task(task_map[asset_type], job, req)
@@ -229,6 +239,56 @@ async def _run_sound(job: Job, req) -> None:
                 message=str(e),
                 status="error",
                 data={"service": "elevenlabs", "detail": str(e)},
+            )
+        )
+
+
+async def _run_music(job: Job, req) -> None:
+    try:
+        await job.queue.put(
+            JobEvent(progress=10, message="Starting music generation...", status="running")
+        )
+
+        async def on_progress(pct: int, message: str) -> None:
+            await job.queue.put(JobEvent(progress=pct, message=message, status="running"))
+
+        music_bytes, metadata = await generate_music(
+            req.prompt,
+            duration=req.music_duration,
+            model_version=req.music_model_version or "stereo-large",
+            temperature=req.music_temperature,
+            classifier_free_guidance=req.music_guidance,
+            on_progress=on_progress,
+        )
+
+        await job.queue.put(JobEvent(progress=80, message="Saving to archive...", status="running"))
+
+        filename = f"{req.name.lower().replace(' ', '_')}_music.mp3"
+        record = await pb_client.create_asset(
+            asset_type="music",
+            name=req.name,
+            prompt=req.prompt,
+            file_bytes=music_bytes,
+            filename=filename,
+            metadata=metadata,
+        )
+
+        file_url = pb_client.get_file_url(record["id"], record.get("file", filename))
+        await job.queue.put(
+            JobEvent(
+                progress=100,
+                message="Music generated successfully!",
+                status="done",
+                data={**record, "file_url": file_url},
+            )
+        )
+    except Exception as e:
+        await job.queue.put(
+            JobEvent(
+                progress=0,
+                message=str(e),
+                status="error",
+                data={"service": "replicate", "detail": str(e)},
             )
         )
 
