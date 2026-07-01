@@ -21,6 +21,7 @@ const typeLabels: Record<string, string> = {
   spritesheet: "Spritesheet",
   sound: "Sound",
   lore: "Lore",
+  music: "Music",
 };
 
 const typeIcons: Record<string, string> = {
@@ -28,6 +29,7 @@ const typeIcons: Record<string, string> = {
   spritesheet: "🎞️",
   sound: "🔊",
   lore: "📜",
+  music: "🎵",
 };
 
 const fileUrl = computed(() => {
@@ -40,6 +42,7 @@ const fileUrl = computed(() => {
 const isImage = computed(() => props.job.type === "image" || props.job.type === "spritesheet");
 const isSound = computed(() => props.job.type === "sound");
 const isLore = computed(() => props.job.type === "lore");
+const isMusic = computed(() => props.job.type === "music");
 
 async function downloadFile() {
   if (fileUrl.value) {
@@ -122,6 +125,13 @@ async function downloadFile() {
 
         <!-- Sound player -->
         <div v-if="isSound && fileUrl">
+          <audio controls class="w-full">
+            <source :src="fileUrl" type="audio/mpeg" />
+          </audio>
+        </div>
+
+        <!-- Music player -->
+        <div v-if="isMusic && fileUrl">
           <audio controls class="w-full">
             <source :src="fileUrl" type="audio/mpeg" />
           </audio>

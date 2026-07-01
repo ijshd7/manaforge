@@ -14,6 +14,7 @@ const typeIcons: Record<string, string> = {
   spritesheet: "🎞️",
   sound: "🔊",
   lore: "📜",
+  music: "🎵",
 };
 
 const fileUrl = computed(() => {
@@ -65,8 +66,8 @@ async function downloadAsset() {
         class="w-full h-full object-contain"
       />
 
-      <!-- Sound player -->
-      <div v-else-if="asset.type === 'sound' && fileUrl" class="w-full px-4">
+      <!-- Sound / Music player -->
+      <div v-else-if="(asset.type === 'sound' || asset.type === 'music') && fileUrl" class="w-full px-4">
         <audio controls class="w-full">
           <source :src="fileUrl" type="audio/mpeg" />
         </audio>
